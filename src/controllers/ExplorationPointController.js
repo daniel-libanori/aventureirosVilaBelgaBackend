@@ -79,6 +79,21 @@ export default {
 
       const explorationPoints = await prisma.explorationPoint.findMany({ where: { chapterId: Number(chapterId) } });
 
+ 
+      const promises = explorationPoints.map((expPt) => {
+        return prisma.explorationPointPreviousRelation.findMany({ where: { nextPointId: expPt.id } })
+      });
+    
+      const previousExplorationPointsRelation = await Promise.all(promises);
+      
+      const explorationPointsWithRelations = explorationPoints.map(point => {
+        const previousRelations = previousExplorationPointsRelation.filter(subArr=>subArr.length > 0).flat().filter(relation => relation.nextPointId === point.id);
+        const previousPoints = previousRelations.map(relation => {
+          return explorationPoints.find(expPoint => expPoint.id === relation.previousPointId);
+        });
+        return { ...point, previousRelation: previousPoints };
+      });
+
 
       if(getby === 'position'){
         function groupByPosition(array) {
@@ -89,70 +104,120 @@ export default {
           }, {});
         }
 
-        return res.json(groupByPosition(explorationPoints));
+        return res.json(groupByPosition(explorationPointsWithRelations));
       }
       
-      return res.json(explorationPoints);
+      return res.json(explorationPointsWithRelations);
     } catch (error) {
       return res.json(error);
     }
   },
 
-  // async FindOneChapter(req, res) {
-  //   const { chapterId } = req.params;
+  async FindOneExplorationPoint(req, res) {
+    const { explorationPointId } = req.params;
 
-  //   try {
-  //     const chapter = await prisma.book.findUnique({ where: { id: Number(chapterId) } });
+    try {
+      const explorationPoint = await prisma.explorationPoint.findUnique({ where: { id: Number(explorationPointId) } });
 
-  //     if (!chapter) {
-  //       return res.json({ message: "Capítulo inexistente" });
-  //     }
+      if (!explorationPoint) {
+        return res.json({ message: "Ponto de Exploração inexistente" });
+      }
 
-  //     return res.json(chapter);
-  //   } catch (error) {
-  //     return res.json(error);
-  //   }
-  // },
 
-  // async UpdateChapter(req, res) {
-  //   const { chapterId } = req.params;
-  //   const { name, introduction, bookId, mapId } = req.body;
+      const explorationPointRelations = await prisma.explorationPointPreviousRelation.findMany({ where: { nextPointId: parseInt(explorationPointId) } })
 
-  //   try {
-  //     const chapter = await prisma.chapter.findUnique({ where: { id: Number(chapterId) } });
 
-  //     if (!chapter) {
-  //       return res.json({ message: "Capítulo inexistente" });
-  //     }
       
-  //     const chapters = await prisma.chapter.update({ 
-  //         where: { id: Number(chapterId) } ,
-  //         data:  { name, introduction, bookId, mapId }
-  //     });
+      return res.json({...explorationPoint, relations: explorationPointRelations});
+    } catch (error) {
+      return res.json(error);
+    }
+  },
 
-  //     return res.json(chapters);
-  //   } catch (error) {
-  //     return res.json(error);
-  //   }
-  // },
+  async UpdateExplorationPoint(req, res) {
+    const { explorationPointId } = req.params;
+    const { name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText, previousExplorationPointsId, nextExplorationPointsId } = req.body;
 
-  // async DeleteExplorationPoint(req, res) {
-  //   const { explorationPointId } = req.params;
+    try {
+      const explorationPoint = await prisma.explorationPoint.findUnique({ where: { id: Number(explorationPointId) } });
 
-  //   try {
-  //     const explorationPoint = await prisma.explorationPoint.findUnique({ where: { id: Number(explorationPointId) } });
+      if (!explorationPoint) {
+        return res.json({ message: "Ponto de Exploração inexistente" });
+      }
 
-  //     if (!explorationPoint) {
-  //       return res.json({ message: "Ponto de Exploração inexistente" });
-  //     }
+      const explorationPointOldRelations = await prisma.explorationPointPreviousRelation.findMany({ where: { nextPointId: parseInt(explorationPointId) } })
       
-  //     const explorationPoints = await prisma.explorationPoint.delete({ 
-  //         where: { id: Number(explorationPointId) }
-  //     });
 
-  //     return res.json(explorationPoints);
-  //   } catch (error) {
-  //     return res.json(error);
-  //   }
-  // },
+      async function removeUnwantedRelations() {
+        const relationsToRemove = explorationPointOldRelations.filter(relation => !previousExplorationPointsId.includes(relation.previousPointId));
+      
+        for (const relation of relationsToRemove) {
+          await prisma.explorationPointPreviousRelation.delete({
+            where: { id: relation.id },
+          });
+        }
+      }
+
+      async function createNewRelations() {
+        
+        const newRelations = JSON.parse(previousExplorationPointsId).filter(id => (!explorationPointOldRelations.some(relation => relation.previousPointId === id)));
+        
+        for (const newId of newRelations) {
+          await prisma.explorationPointPreviousRelation.create({
+            data: {
+              previousPointId: newId,
+              nextPointId: parseInt(explorationPointId),
+            },
+          });
+        }
+      }
+
+      const explorationPointUpdated = await prisma.explorationPoint.update({ 
+          where: { id: Number(explorationPointId) } ,
+          data:  { name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText }
+      });
+
+      const removedUnwantedRelations = await removeUnwantedRelations()
+      const createdNewRelations = await createNewRelations()
+
+      const explorationPointRelationsUpdated = await prisma.explorationPointPreviousRelation.findMany({ where: { nextPointId: explorationPointUpdated.id } })
+
+
+      return res.json({...explorationPointUpdated, relations: explorationPointRelationsUpdated});
+    } catch (error) {
+      return res.json(error);
+    }
+  },
+
+  async DeleteExplorationPoint(req, res) {
+    const { explorationPointId } = req.params;
+
+    try {
+      const explorationPoint = await prisma.explorationPoint.findUnique({ where: { id: parseInt(explorationPointId) } });
+
+      if (!explorationPoint) {
+        return res.json({ message: "Ponto de Exploração inexistente" });
+      }
+      
+
+      await prisma.explorationPointPreviousRelation.deleteMany({
+        where: { 
+          OR: [
+            {previousPointId: parseInt(explorationPointId)},
+            {nextPointId: parseInt(explorationPointId)}
+          ]
+          
+        },
+      });
+
+
+      const explorationPoints = await prisma.explorationPoint.delete({ 
+          where: { id: parseInt(explorationPointId) }
+      });
+
+      return res.json({ message: "Ponto de Exploração deletado com sucesso" });
+    } catch (error) {
+      return res.json(error);
+    }
+  },
 };

@@ -36,9 +36,9 @@ router.delete("/map/:mapId", MapController.DeleteMap);
 
 router.post("/chapter/:chapterId/explorationPoint", ExplorationPointController.CreateExplorationPoint);
 router.get("/chapter/:chapterId/explorationPoints", ExplorationPointController.FindAllExplorationPoints);
-// router.get("/explorationPoint/:explorationPointId", ChapterController.FindOneChapter);
-// router.put("/explorationPoint/:explorationPointId", ChapterController.UpdateChapter);
-// router.delete("/explorationPoint/:explorationPointId", ChapterController.DeleteChapter);
+router.get("/explorationPoint/:explorationPointId", ExplorationPointController.FindOneExplorationPoint);
+router.put("/explorationPoint/:explorationPointId", ExplorationPointController.UpdateExplorationPoint);
+router.delete("/explorationPoint/:explorationPointId", ExplorationPointController.DeleteExplorationPoint);
 
 router.get("/book/:bookId/pdf", PdfController.CreateBookPdf)
 
