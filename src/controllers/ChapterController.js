@@ -100,6 +100,26 @@ export default {
         return res.json({ message: "Capítulo inexistente" });
       }
       
+      const explorationPoints = await prisma.explorationPoint.findMany({ where: { chapterId: Number(chapterId) } });
+
+
+      const deleteOperationsExpPoint = explorationPoints.map(async (explorationPoint) => {
+        await prisma.explorationPointPreviousRelation.deleteMany({
+          where: { 
+            OR: [
+              {previousPointId: parseInt(explorationPoint.id)},
+              {nextPointId: parseInt(explorationPoint.id)}
+            ]
+          },
+        });
+      
+        const explorationPointsDeleted = await prisma.explorationPoint.delete({ 
+          where: { id: parseInt(explorationPoint.id) }
+        });
+      });
+      
+      await Promise.all(deleteOperationsExpPoint);
+
       const chapters = await prisma.chapter.delete({ 
           where: { id: Number(chapterId) }
       });
