@@ -51,7 +51,7 @@ model Map {
 }
 
 model ExplorationPoint {
-  id                    Int      @id @default(autoincrement())
+  id                    Int     @id @default(autoincrement())
   name                  String
   code                  String
   xPosition             Int
@@ -59,12 +59,39 @@ model ExplorationPoint {
   pointIntroductionText String
   pointChallangeText    String
   chapterId             Int
-  created_at            DateTime @default(now())
-  chapter               Chapter  @relation(fields: [chapterId], references: [id])
+  type                  String  @default("text")
+  successText           String?
+  failText              String?
+
+  diceAmout             Int?
+  diceMinValueToSuccess Int?
+  diceAmoutToSuccess    Int?
+  enemies               ExplorationPointEnemy[]
+
+  created_at DateTime @default(now())
+  chapter    Chapter  @relation(fields: [chapterId], references: [id])
 }
 
 model ExplorationPointPreviousRelation {
   id              Int @id @default(autoincrement())
   previousPointId Int
   nextPointId     Int
+}
+
+model Enemy {
+  id                Int                     @id @default(autoincrement())
+  name              String
+  lifePoints        Int                     @default(1)
+  attackPoints      Int                     @default(1)
+  created_at        DateTime                @default(now())
+  explorationPoints ExplorationPointEnemy[]
+}
+
+model ExplorationPointEnemy {
+  explorationPointId Int
+  enemyId            Int
+  explorationPoint   ExplorationPoint @relation(fields: [explorationPointId], references: [id])
+  enemy              Enemy            @relation(fields: [enemyId], references: [id])
+
+  @@id([explorationPointId, enemyId])
 }

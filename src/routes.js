@@ -6,6 +6,7 @@ import ChapterController from "./controllers/ChapterController";
 import MapController from "./controllers/MapController";
 import ExplorationPointController from "./controllers/ExplorationPointController";
 import PdfController from "./controllers/PdfController";
+import EnemyController from "./controllers/EnemyController";
 
 const router = Router();
 
@@ -42,5 +43,10 @@ router.delete("/explorationPoint/:explorationPointId", ExplorationPointControlle
 
 router.get("/book/:bookId/pdf", PdfController.CreateBookPdf)
 
+router.post('/enemy', EnemyController.CreateEnemy);
+router.get('/enemies', EnemyController.FindAllEnemies);
+router.get('/enemy/:enemyId', EnemyController.FindOneEnemy);
+router.put('/enemy/:enemyId', EnemyController.UpdateEnemy);
+router.delete('/enemy/:enemyId', EnemyController.DeleteEnemy);
 
 export { router };
