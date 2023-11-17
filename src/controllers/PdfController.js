@@ -101,9 +101,39 @@ async CreateBookPdf(req, res) {
                 Os investigadores iniciam na posição ${contarLetrasAteNumero(chapter.initialXPoint) + chapter.initialYPoint}.
                 </p>            
                 ${chapter.explorationPoints.map((expPoint, expPtIdx) => (`
-                    <h3>${(chapterIdx+1)+"." + (expPtIdx+1) + " " + expPoint.name}</h3>
+                    <h3>${expPoint.name}</h3>
                     <p style=" white-space: pre-wrap ;">${expPoint.pointIntroductionText}</p>
-                    <p style=" white-space: pre-wrap ;">${expPoint.pointChallangeText}</p>
+                    ${ expPoint.type === "text" ?
+                        `<p style=" white-space: pre-wrap ;">${expPoint.pointChallangeText}</p>`
+                        : ""
+                    }
+                    ${ expPoint.type === "individual-challange" ?
+                        `<p>
+                            <b>DESAFIO INDIVIDUAL: </b> faça um teste ${expPoint.diceAmout} | ${expPoint.diceMinValueToSuccess} | ${expPoint.diceAmoutToSuccess}
+                        </p>`
+                            : ""
+                    }
+                    ${ expPoint.type === "group-challange" ?
+                        `<p>
+                            <b>DESAFIO EM GRUPO: </b> faça um teste ${expPoint.diceAmout} | ${expPoint.diceMinValueToSuccess} | ${expPoint.diceAmoutToSuccess}
+                        </p>`
+                            : ""
+                    }
+
+
+                    ${expPoint.successText.length > 0 ?
+                        `
+
+                            <p style=" white-space: pre-wrap ;"><b>SUCESSO: </b>${expPoint.successText}</p>
+                        `
+                        : ""
+                    }
+                    ${expPoint.failText.length > 0 ?
+                        `
+                            <p style=" white-space: pre-wrap ;"><b>FRACASSO: </b>${expPoint.failText}</p>
+                        `
+                        : ""
+                    }
                 `)).join('')}
             </div>
         `);
@@ -141,6 +171,7 @@ async CreateBookPdf(req, res) {
                 </div>
                 <b style="text-align: center; font-size: 20px;">____________________________________________________________________________________________</b>
             </div>`,
+            footerTemplate: `<div></div>`,
             margin: {
               top: '100px', // default is 0, you can set the value as per your requirement
               bottom: '60px', // default is 0, you can set the value as per your requirement
