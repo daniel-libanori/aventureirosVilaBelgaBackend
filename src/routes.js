@@ -10,6 +10,10 @@ import EnemyController from "./controllers/EnemyController.js";
 
 const router = Router();
 
+router.get("/", (req, res) => {
+  res.send("Hello World");
+});
+
 router.post("/user", UserController.CreateUser);
 router.get("/users" ,UserController.FindAllUsers);
 router.get("/user/:email", UserController.FindUser);
