@@ -7,7 +7,7 @@ datasource db {
   // provider = "sqlite"
   // url      = "file:./dev.db"
   provider = "postgresql"
-  url      = "postgresql://postgres:admin@localhost:5432/mydb?schema=public"
+  url      = env("DATABASE_URL") 
 }
 
 model User {
