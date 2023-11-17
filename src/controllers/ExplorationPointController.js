@@ -4,7 +4,9 @@ const prisma = new PrismaClient();
 export default {
   async CreateExplorationPoint(req, res) {
     const { chapterId } = req.params;
-    const { name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText, previousExplorationPointsId, nextExplorationPointsId } = req.body;
+    const { name, code, xPosition, yPosition, pointIntroductionText, type, successText,
+      failText, diceAmout, diceMinValueToSuccess, diceAmoutToSuccess,
+      pointChallangeText, previousExplorationPointsId, nextExplorationPointsId } = req.body;
 
     try {
       const chapter = await prisma.chapter.findUnique({ where: { id: Number(chapterId) } });
@@ -14,45 +16,47 @@ export default {
       }
       const explorationPoints = await prisma.explorationPoint.create({
         data: {
-          name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText, chapter: {
+          name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText,
+          type, successText, failText, diceAmout, diceMinValueToSuccess, diceAmoutToSuccess,
+          chapter: {
             connect: {
               id: Number(chapterId)
             }
           }
         }
       });
-      
-      if(Array.isArray(previousExplorationPointsId) && previousExplorationPointsId.length > 0){
+
+      if (Array.isArray(previousExplorationPointsId) && previousExplorationPointsId.length > 0) {
         const promises = previousExplorationPointsId.map((expId) => {
           return prisma.explorationPointPreviousRelation.create({
             data: {
-              previousPointId: expId, 
+              previousPointId: expId,
               nextPointId: explorationPoints.id
             }
           });
         });
-      
+
         const previousExplorationPointsRelation = await Promise.all(promises);
       }
-      if(Array.isArray(nextExplorationPointsId)){
-        if(!!nextExplorationPointsId.length){
+      if (Array.isArray(nextExplorationPointsId)) {
+        if (!!nextExplorationPointsId.length) {
           nextExplorationPointsId.map(async (expId) => {
             const nextExplorationPointsRelation = Promise.all(
-              
-                
 
-                await prisma.explorationPointPreviousRelation.create({
-                  data: {
-                    previousPointId: explorationPoints.id, nextPointId: expId
-                  }
-                })
 
-              
-            ) 
+
+              await prisma.explorationPointPreviousRelation.create({
+                data: {
+                  previousPointId: explorationPoints.id, nextPointId: expId
+                }
+              })
+
+
+            )
 
           })
         }
-        
+
 
       }
 
@@ -79,15 +83,15 @@ export default {
 
       const explorationPoints = await prisma.explorationPoint.findMany({ where: { chapterId: Number(chapterId) } });
 
- 
+
       const promises = explorationPoints.map((expPt) => {
         return prisma.explorationPointPreviousRelation.findMany({ where: { nextPointId: expPt.id } })
       });
-    
+
       const previousExplorationPointsRelation = await Promise.all(promises);
-      
+
       const explorationPointsWithRelations = explorationPoints.map(point => {
-        const previousRelations = previousExplorationPointsRelation.filter(subArr=>subArr.length > 0).flat().filter(relation => relation.nextPointId === point.id);
+        const previousRelations = previousExplorationPointsRelation.filter(subArr => subArr.length > 0).flat().filter(relation => relation.nextPointId === point.id);
         const previousPoints = previousRelations.map(relation => {
           return explorationPoints.find(expPoint => expPoint.id === relation.previousPointId);
         });
@@ -95,18 +99,18 @@ export default {
       });
 
 
-      if(getby === 'position'){
+      if (getby === 'position') {
         function groupByPosition(array) {
           return array.reduce((result, item) => {
-              const key = `${item.xPosition}-${item.yPosition}`;
-              (result[key] = result[key] || []).push(item);
-              return result;
+            const key = `${item.xPosition}-${item.yPosition}`;
+            (result[key] = result[key] || []).push(item);
+            return result;
           }, {});
         }
 
         return res.json(groupByPosition(explorationPointsWithRelations));
       }
-      
+
       return res.json(explorationPointsWithRelations);
     } catch (error) {
       return res.json(error);
@@ -127,8 +131,8 @@ export default {
       const explorationPointRelations = await prisma.explorationPointPreviousRelation.findMany({ where: { nextPointId: parseInt(explorationPointId) } })
 
 
-      
-      return res.json({...explorationPoint, relations: explorationPointRelations});
+
+      return res.json({ ...explorationPoint, relations: explorationPointRelations });
     } catch (error) {
       return res.json(error);
     }
@@ -136,7 +140,9 @@ export default {
 
   async UpdateExplorationPoint(req, res) {
     const { explorationPointId } = req.params;
-    const { name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText, previousExplorationPointsId, nextExplorationPointsId } = req.body;
+    const { name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText, previousExplorationPointsId, 
+      nextExplorationPointsId,  type, successText,
+      failText, diceAmout, diceMinValueToSuccess, diceAmoutToSuccess } = req.body;
 
     try {
       const explorationPoint = await prisma.explorationPoint.findUnique({ where: { id: Number(explorationPointId) } });
@@ -146,11 +152,11 @@ export default {
       }
 
       const explorationPointOldRelations = await prisma.explorationPointPreviousRelation.findMany({ where: { nextPointId: parseInt(explorationPointId) } })
-      
+
 
       async function removeUnwantedRelations() {
         const relationsToRemove = explorationPointOldRelations.filter(relation => !previousExplorationPointsId.includes(relation.previousPointId));
-      
+
         for (const relation of relationsToRemove) {
           await prisma.explorationPointPreviousRelation.delete({
             where: { id: relation.id },
@@ -159,9 +165,9 @@ export default {
       }
 
       async function createNewRelations() {
-        
+
         const newRelations = JSON.parse(previousExplorationPointsId).filter(id => (!explorationPointOldRelations.some(relation => relation.previousPointId === id)));
-        
+
         for (const newId of newRelations) {
           await prisma.explorationPointPreviousRelation.create({
             data: {
@@ -172,9 +178,10 @@ export default {
         }
       }
 
-      const explorationPointUpdated = await prisma.explorationPoint.update({ 
-          where: { id: Number(explorationPointId) } ,
-          data:  { name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText }
+      const explorationPointUpdated = await prisma.explorationPoint.update({
+        where: { id: Number(explorationPointId) },
+        data: { name, code, xPosition, yPosition, pointIntroductionText, pointChallangeText, type, successText,
+          failText, diceAmout, diceMinValueToSuccess, diceAmoutToSuccess }
       });
 
       const removedUnwantedRelations = await removeUnwantedRelations()
@@ -183,7 +190,7 @@ export default {
       const explorationPointRelationsUpdated = await prisma.explorationPointPreviousRelation.findMany({ where: { nextPointId: explorationPointUpdated.id } })
 
 
-      return res.json({...explorationPointUpdated, relations: explorationPointRelationsUpdated});
+      return res.json({ ...explorationPointUpdated, relations: explorationPointRelationsUpdated });
     } catch (error) {
       return res.json(error);
     }
@@ -198,21 +205,21 @@ export default {
       if (!explorationPoint) {
         return res.json({ message: "Ponto de Exploração inexistente" });
       }
-      
+
 
       await prisma.explorationPointPreviousRelation.deleteMany({
-        where: { 
+        where: {
           OR: [
-            {previousPointId: parseInt(explorationPointId)},
-            {nextPointId: parseInt(explorationPointId)}
+            { previousPointId: parseInt(explorationPointId) },
+            { nextPointId: parseInt(explorationPointId) }
           ]
-          
+
         },
       });
 
 
-      const explorationPoints = await prisma.explorationPoint.delete({ 
-          where: { id: parseInt(explorationPointId) }
+      const explorationPoints = await prisma.explorationPoint.delete({
+        where: { id: parseInt(explorationPointId) }
       });
 
       return res.json({ message: "Ponto de Exploração deletado com sucesso" });
