@@ -42,8 +42,47 @@ export default {
         return res.json({ message: "Usuario inexistente" });
       }
 
-      const chapters = await prisma.chapter.findMany({ where: { bookId: Number(book.id) } });
-      return res.json(chapters);
+      const chapters = await prisma.chapter.findMany({ where: { bookId: Number(book.id)} });
+
+      const mapsPromisse = chapters.map(async (chap) => {
+        return await prisma.map.findMany({ where: { id: Number(chap.mapId) } });
+      }); 
+      
+      const maps = await Promise.all(mapsPromisse);
+      
+      const mapsWithoutImage = maps.flat().map((map) => {
+        return { 
+          id: map.id,
+          name: map.name,
+          mapText: map.mapText,
+          xMapSize: map.xMapSize,
+          yMapSize: map.yMapSize,
+
+         };
+      
+      })
+
+
+      const explorationPointsPromisse = chapters.map(async (chap) => {
+        return await prisma.explorationPoint.findMany({ where: { chapterId: Number(chap.id) } });
+      }); 
+      
+      const explorationPoints = await Promise.all(explorationPointsPromisse);
+
+      chapters.map((chap, index) => {
+        chapters[index] ={...chap, explorationPoints: [], map: mapsWithoutImage[index]}
+      })
+      
+      const chaptersWithExplorationPointsPromisse = await chapters.map(async (chap, index) => {
+        const chapExpPoints = explorationPoints.flat().filter((expPoint) => {
+          return expPoint.chapterId === chap.id;
+        })
+        return { ...chap, explorationPoints: chapExpPoints };
+      });
+      const chaptersWithExplorationPoints = await Promise.all(chaptersWithExplorationPointsPromisse);
+
+
+      return res.json(chaptersWithExplorationPoints);
     } catch (error) {
       return res.json(error);
     }
