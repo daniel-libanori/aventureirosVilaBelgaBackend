@@ -1,12 +1,12 @@
 import { Router } from "express";
 
-import UserController from "./controllers/UserController";
-import BookController from "./controllers/BookController";
-import ChapterController from "./controllers/ChapterController";
-import MapController from "./controllers/MapController";
-import ExplorationPointController from "./controllers/ExplorationPointController";
-import PdfController from "./controllers/PdfController";
-import EnemyController from "./controllers/EnemyController";
+import UserController from "./controllers/UserController.js";
+import BookController from "./controllers/BookController.js";
+import ChapterController from "./controllers/ChapterController.js";
+import MapController from "./controllers/MapController.js";
+import ExplorationPointController from "./controllers/ExplorationPointController.js";
+import PdfController from "./controllers/PdfController.js";
+import EnemyController from "./controllers/EnemyController.js";
 
 const router = Router();
 

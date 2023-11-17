@@ -1,1 +1,3 @@
-web: node src/server.js
+web: npm start
+
+release: npx prisma migrate deploy
