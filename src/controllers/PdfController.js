@@ -183,7 +183,7 @@ async CreateBookPdf(req, res) {
 
 
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline; filename=book.pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=book.pdf');
         res.send(pdf);
     }
     else{
