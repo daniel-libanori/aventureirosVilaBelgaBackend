@@ -156,7 +156,10 @@ async CreateBookPdf(req, res) {
     
         // Crie um PDF usando puppeteer
         const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox', "--single-process"],
+            args: [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage", "--single-process"],
             headless: "new",
           });
         const page = await browser.newPage();
