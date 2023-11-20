@@ -1,7 +1,8 @@
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 import puppeteer from 'puppeteer';
-
+import path from "path";
+import { fileURLToPath } from "url";
 
 const prisma = new PrismaClient();
 
@@ -155,12 +156,13 @@ async CreateBookPdf(req, res) {
         `;
     
         // Crie um PDF usando puppeteer
+        const __filename = await fileURLToPath(import.meta.url);
+        const __dirname = await path.dirname(__filename);
         const browser = await puppeteer.launch({
-            args: [
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage", "--single-process"],
-            headless: "new",
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            cache: path.join(__dirname, '.cache', 'puppeteer'),
+            executablePath: process.env.GOOGLE_CHROME_BIN || null,
           });
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: 'networkidle0' });
