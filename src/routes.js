@@ -7,7 +7,8 @@ import MapController from "./controllers/MapController.js";
 import ExplorationPointController from "./controllers/ExplorationPointController.js";
 import PdfController from "./controllers/PdfController.js";
 import EnemyController from "./controllers/EnemyController.js";
-
+import path from "path";
+import { fileURLToPath } from "url";
 
 import puppeteer from "puppeteer";
 import validUrl from 'valid-url';
@@ -27,10 +28,15 @@ router.get('/', function(req, res) {
     var urlToScreenshot = parseUrl(req.query.url);
 
     if (validUrl.isWebUri(urlToScreenshot)) {
-        console.log('Screenshotting: ' + urlToScreenshot);
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        // console.log(path.join(__dirname, '.cache', 'puppeteer'),)
+        // console.log('Screenshotting: ' + urlToScreenshot);
         (async() => {
             const browser = await puppeteer.launch({
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                cache: path.join(__dirname, '.cache', 'puppeteer')
             });
 
             const page = await browser.newPage();
