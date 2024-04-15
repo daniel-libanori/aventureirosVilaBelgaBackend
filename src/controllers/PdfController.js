@@ -101,12 +101,8 @@ async CreateBookPdf(req, res) {
                 Os investigadores iniciam na posição ${contarLetrasAteNumero(chapter.initialXPoint) + chapter.initialYPoint}.
                 </p>            
                 ${chapter.explorationPoints.map((expPoint, expPtIdx) => (`
-                    <h3>${expPoint.name}</h3>
+                    <h3>${expPoint.code + (!!expPoint.name ?  (" " + expPoint.name) : "")}</h3>
                     <p style=" white-space: pre-wrap ;">${expPoint.pointIntroductionText}</p>
-                    ${ expPoint.type === "text" ?
-                        `<p style=" white-space: pre-wrap ;">${expPoint.pointChallangeText}</p>`
-                        : ""
-                    }
                     ${ expPoint.type === "individual-challange" ?
                         `<p>
                             <b>DESAFIO INDIVIDUAL: </b> faça um teste ${expPoint.diceAmout} | ${expPoint.diceMinValueToSuccess} | ${expPoint.diceAmoutToSuccess}
@@ -134,6 +130,21 @@ async CreateBookPdf(req, res) {
                         `
                         : ""
                     }
+
+                    ${chapter.relations.filter(rel=>rel.previousPointId === expPoint.id).length > 0 ?
+                    `
+                        <p style=" white-space: pre-wrap ;"> Coloque a fixa ${chapter.explorationPoints.filter(
+                                expP => chapter.relations.filter(rel=>rel.previousPointId === expPoint.id)[0].nextPointId == expP.id)[0].code
+                        } no ponto ${contarLetrasAteNumero(chapter.explorationPoints.filter(
+                            expP => chapter.relations.filter(rel=>rel.previousPointId === expPoint.id)[0].nextPointId == expP.id)[0].xPosition)
+                        }${chapter.explorationPoints.filter(
+                            expP => chapter.relations.filter(rel=>rel.previousPointId === expPoint.id)[0].nextPointId == expP.id)[0].yPosition
+                        }
+                        </p>
+                    ` :
+                    ""
+                    }
+                    
                 `)).join('')}
             </div>
         `);
