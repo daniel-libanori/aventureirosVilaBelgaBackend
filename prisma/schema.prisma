@@ -32,6 +32,7 @@ model Chapter {
   initialYPoint     Int                @default(1)
   name              String
   introduction      String
+  final             String             @default("")
   bookId            Int
   created_at        DateTime           @default(now())
   book              Book               @relation(fields: [bookId], references: [id])
@@ -61,8 +62,10 @@ model ExplorationPoint {
   pointChallangeText    String
   chapterId             Int
   type                  String  @default("text")
+  expPointEnemyOrPerson String  @default("expPoint")
   successText           String?
   failText              String?
+  enemiesArray          String? @default("[]")
 
   diceAmout             Int?
   diceMinValueToSuccess Int?
