@@ -92,7 +92,7 @@ export default {
 
       const expPointsHtmlArr = chaptersWithExpPoints.map(
         (chapter, chapterIdx) => `
-            <div style="page-break-after: always;">
+            <div style="column-count: 2; column-fill: auto; word-wrap: break-word; margin-left: 20px; margin-right: 20px; text-align: justify;">
                 <h2>${chapterIdx + 1 + ".0 " + chapter.name}</h2>
                 ${
                   chapter.introduction.length > 0
@@ -152,10 +152,25 @@ export default {
                         </p>`
                         : ""
                     }
+                    ${
+                      expPoint.type === "fight"
+                        ? `<p>
+                              <b>INIMIGOS APARECEM: </b> Batalha contra o${
+                                JSON.parse(expPoint.enemiesArray) > 1 ? "s" : ""
+                              } inimigo${
+                            JSON.parse(expPoint.enemiesArray) > 1 ? "s" : ""
+                          } 
+                              ${JSON.parse(expPoint.enemiesArray)}.
+                          </p>`
+                        : ""
+                    }
 
 
                     ${
-                      expPoint.successText.length > 0
+                      expPoint.successText.length > 0 &&
+                      (expPoint.type === "individual-challange" ||
+                        expPoint.type === "group-challange" ||
+                        expPoint.type === "fight")
                         ? `
 
                             <p style=" white-space: pre-wrap ;"><b>SUCESSO: </b>${expPoint.successText}</p>
@@ -163,7 +178,8 @@ export default {
                         : ""
                     }
                     ${
-                      expPoint.failText.length > 0
+                      expPoint.failText.length > 0 &&
+                      expPoint.type === "individual-challange"
                         ? `
                             <p style=" white-space: pre-wrap ;"><b>FRACASSO: </b>${expPoint.failText}</p>
                         `
@@ -205,26 +221,64 @@ export default {
                 `
                   )
                   .join("")}
+
+                  ${
+                    chapter.final.length > 0
+                      ? `
+                          <h3>Fim de Capítulo</h3>
+                          <p style=" white-space: pre-wrap ;">${chapter.final}</p>    
+                      `
+                      : ""
+                  }
             </div>
         `
       );
 
       // Crie um HTML para o PDF
       const html = `
-            <html>
-            <body>
-                <div style="column-count: 2; column-fill: auto; word-wrap: break-word; margin-left: 20px; margin-right: 20px; text-align: justify;">
-                    ${chapters
-                      .map(
-                        (chapter, index) =>
-                          `
-                            ${expPointsHtmlArr[index]}
-                        `
-                      )
-                      .join("")}
+      <html>
+      <body>
+          ${
+            bookData.bookIntro.length > 0
+              ? `<div style="column-count: 2; column-fill: auto; word-wrap: break-word; margin-left: 20px; margin-right: 20px; text-align: justify;">
+              <div>
+                  <h2>Prólogo</h2>
+                  <p>${bookData.bookIntro}</p>
+              </div>
+            </div>
+          
+            <div style="page-break-before: always;"></div>`
+              : ""
+          }
+  
+          <div >
+              ${chapters
+                .map(
+                  (chapter, index) =>
+                    `
+                      ${expPointsHtmlArr[index]}
+                      ${
+                        chapters.length !== index + 1
+                          ? `<div style="page-break-before: always;"></div>`
+                          : ""
+                      }
+                  `
+                )
+                .join("")}
+          </div>
+          ${
+            bookData.bookFinal.length > 0
+              ? `<div style="page-break-before: always;"></div>
+            <div style="column-count: 2; column-fill: auto; word-wrap: break-word; margin-left: 20px; margin-right: 20px; text-align: justify;">
+                <div>
+                    <h2>Epílogo</h2>
+                    <p>${bookData.bookFinal}</p>
                 </div>
-            </body>
-            </html>
+            </div>`
+              : ""
+          }
+      </body>
+      </html>
         `;
 
       // Crie um PDF usando puppeteer
