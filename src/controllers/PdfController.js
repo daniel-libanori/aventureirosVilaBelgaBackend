@@ -124,8 +124,8 @@ export default {
                   )
                   .join("")}
                 Os investigadores iniciam na posição ${
-                  contarLetrasAteNumero(chapter.initialXPoint) +
-                  chapter.initialYPoint
+                  contarLetrasAteNumero(chapter.initialYPoint) +
+                  chapter.initialXPoint
                 }.
                 </p>            
                 ${chapter.explorationPoints
