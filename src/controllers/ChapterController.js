@@ -122,7 +122,15 @@ export default {
 
   async UpdateChapter(req, res) {
     const { chapterId } = req.params;
-    const { name, introduction, bookId, mapId, final } = req.body;
+    const {
+      name,
+      introduction,
+      bookId,
+      mapId,
+      final,
+      initialXPoint,
+      initialYPoint,
+    } = req.body;
 
     try {
       const chapter = await prisma.chapter.findUnique({
@@ -135,7 +143,7 @@ export default {
 
       const chapters = await prisma.chapter.update({
         where: { id: Number(chapterId) },
-        data: { name, introduction, final },
+        data: { name, introduction, final, initialXPoint, initialYPoint },
       });
 
       return res.json(chapters);
