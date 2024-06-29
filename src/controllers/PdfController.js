@@ -191,7 +191,7 @@ export default {
                         (rel) => rel.previousPointId === expPoint.id
                       ).length > 0
                         ? `
-                        <p style=" white-space: pre-wrap ;"> Coloque a fixa ${
+                        <p style=" white-space: pre-wrap ;"> Coloque a ficha ${
                           chapter.explorationPoints.filter(
                             (expP) =>
                               chapter.relations.filter(
