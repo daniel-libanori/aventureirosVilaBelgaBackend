@@ -139,23 +139,30 @@ export default {
                       expPoint.pointIntroductionText
                     }</p>
                     ${
+                      expPoint.type === "custom-individual-challange"
+                        ? `<p style=" font-size: 15px;">
+                            <b style=" font-size: 14px;">DESAFIO INDIVIDUAL: </b> ${expPoint.pointChallangeText}
+                        </p>`
+                        : ""
+                    }
+                    ${
                       expPoint.type === "individual-challange"
-                        ? `<p>
-                            <b>DESAFIO INDIVIDUAL: </b> faça um teste ${expPoint.diceAmout} | ${expPoint.diceMinValueToSuccess} | ${expPoint.diceAmoutToSuccess}
+                        ? `<p style=" font-size: 15px;">
+                            <b style=" font-size: 14px;">DESAFIO INDIVIDUAL: </b> faça um teste ${expPoint.diceAmout} | ${expPoint.diceMinValueToSuccess} | ${expPoint.diceAmoutToSuccess}
                         </p>`
                         : ""
                     }
                     ${
                       expPoint.type === "group-challange"
-                        ? `<p>
-                            <b>DESAFIO EM GRUPO: </b> faça um teste ${expPoint.diceAmout} | ${expPoint.diceMinValueToSuccess} | ${expPoint.diceAmoutToSuccess}
+                        ? `<p style=" font-size: 15px;">
+                            <b style=" font-size: 14px;">DESAFIO EM GRUPO: </b> faça um teste ${expPoint.diceAmout} | ${expPoint.diceMinValueToSuccess} | ${expPoint.diceAmoutToSuccess}
                         </p>`
                         : ""
                     }
                     ${
                       expPoint.type === "fight"
-                        ? `<p>
-                              <b>INIMIGOS APARECEM: </b> Batalha contra o${
+                        ? `<p style=" font-size: 15px;">
+                              <b style=" font-size: 14px;">INIMIGOS APARECEM: </b> Batalha contra o${
                                 JSON.parse(expPoint.enemiesArray) > 1 ? "s" : ""
                               } inimigo${
                             JSON.parse(expPoint.enemiesArray) > 1 ? "s" : ""
@@ -170,18 +177,20 @@ export default {
                       expPoint.successText.length > 0 &&
                       (expPoint.type === "individual-challange" ||
                         expPoint.type === "group-challange" ||
+                        expPoint.type === "custom-individual-challange" ||
                         expPoint.type === "fight")
                         ? `
 
-                            <p style=" white-space: pre-wrap ;"><b>SUCESSO: </b>${expPoint.successText}</p>
+                            <p style=" white-space: pre-wrap ; font-size: 13px; "><i><b>  SUCESSO: </b>${expPoint.successText}</i></p>
                         `
                         : ""
                     }
                     ${
-                      expPoint.failText.length > 0 &&
-                      expPoint.type === "individual-challange"
+                      (expPoint.failText.length > 0 &&
+                        expPoint.type === "individual-challange") ||
+                      expPoint.type === "custom-individual-challange"
                         ? `
-                            <p style=" white-space: pre-wrap ;"><b>FRACASSO: </b>${expPoint.failText}</p>
+                            <p style=" white-space: pre-wrap ; font-size: 13px; "><i><b>  FRACASSO: </b>${expPoint.failText}</i></p>
                         `
                         : ""
                     }
@@ -191,7 +200,7 @@ export default {
                         (rel) => rel.previousPointId === expPoint.id
                       ).length > 0
                         ? `
-                        <p style=" white-space: pre-wrap ;"> Coloque a ficha ${
+                        <p style=" white-space: pre-wrap ; font-size: 14px;">Coloque o marcador ${
                           chapter.explorationPoints.filter(
                             (expP) =>
                               chapter.relations.filter(
